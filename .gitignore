@@ -1,0 +1,71 @@
+# Composer dependencies
+/vendor/
+
+# Environment configuration file
+.env
+
+# Laravel storage files (except for .gitignore in specific directories)
+/storage/*.key
+/storage/app/
+/storage/framework/
+/storage/logs/*.log
+!/storage/logs/.gitignore
+!/storage/app/.gitignore
+!/storage/framework/.gitignore
+!/storage/framework/cache/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/testing/.gitignore
+!/storage/framework/views/.gitignore
+
+# Laravel public storage (symlink)
+/public/storage
+
+# Laravel Mix
+/public/hot
+/public/mix-manifest.json
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Node.js dependencies (if you use npm/yarn directly)
+/node_modules/
+
+# IDE / Editor specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+nbproject/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Compiled files (if any, for other languages/tools)
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# PHPUnit
+phpunit.xml
+phpunit.result.cache
+
+# PHP CS Fixer cache file
+.php-cs-fixer.cache
+
+# Homestead (if used)
+Homestead.yaml
+Homestead.json
+
+# Local Vagrant files
+.vagrant/
+
+# Docker related (often specific to local setup, adjust as needed)
+# If your docker-compose.yml or Dockerfile contains sensitive info and is generated locally,
+# you might want to ignore them and provide templates instead.
+# For now, we assume these are part of the project setup.
+# db_data/ (if you mapped your DB volume directly in the project folder and it's not in docker-compose volumes)
