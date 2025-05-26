@@ -4,51 +4,47 @@
 
 @section('content')
 <div class="container mt-4">
+    {{-- 検索オプション --}}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h4>エンジニア再検索</h4>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('engineers.show') }}" method="GET">
-                        <div class="mb-3">
-                            <label for="keyword" class="form-label">キーワード</label>
-                            <input type="text" class="form-control" id="keyword" name="keyword" value="{{ $request->input('keyword') }}" placeholder="氏名、スキル、プロジェクト概要など">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">スキル</label>
-                            <div class="row">
-                                @php $skillTypes = $skillsForForm->groupBy('type'); @endphp
-                                @foreach($skillTypes as $type => $skillsOfType)
-                                <div class="col-md-3 mb-2">
-                                    <strong>{{ ucfirst(str_replace('_', ' ', $type)) }}</strong>
-                                    @foreach($skillsOfType as $skill)
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" name="skills[]" value="{{ $skill->id }}" id="form_skill_{{ $skill->id }}"
-                                            {{ (is_array($request->input('skills')) && in_array($skill->id, $request->input('skills'))) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="form_skill_{{ $skill->id }}">
-                                            {{ $skill->name }}
-                                        </label>
-                                    </div>
-                                    @endforeach
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="experience_years_min" class="form-label">総実務経験年数 (下限)</label>
-                            <input type="number" class="form-control" id="experience_years_min" name="experience_years_min" value="{{ $request->input('experience_years_min') }}" min="0" placeholder="例: 3 (年以上)">
-                        </div>
-                        <button type="submit" class="btn btn-primary">再検索</button>
-                        <a href="{{ route('engineers.searchForm') }}" class="btn btn-secondary">条件クリア</a>
-                    </form>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">検索オプション</h4>
+                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#searchModal">
+                        {{-- ハンバーガーメニューアイコン --}}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5"/>
+                        </svg>
+                        検索条件を編集
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- 検索結果 --}}
+    {{-- 検索フォーム用モーダル --}}
+    <div class="modal fade" id="searchModal" tabindex="-1" aria-labelledby="searchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form action="{{ route(Route::currentRouteName() ?: 'engineers.search') }}" method="GET">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="searchModalLabel">検索条件</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @include('engineers.partials._search_form_fields', ['availableSkills' => $availableSkills, 'currentInputs' => $currentInputs])
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                        <a href="{{ route('engineers.searchForm') }}" class="btn btn-outline-info">条件をリセットして新規検索</a>
+                        <button type="submit" class="btn btn-primary">この条件で再検索</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- 検索結果表示エリア --}}
     <div class="row">
         <div class="col-md-12">
             <div class="card">
@@ -67,7 +63,6 @@
                                         <th>希望単価(下限)</th>
                                         <th>稼働開始時期</th>
                                         <th>自己PR (一部)</th>
-                                        {{-- <th>詳細</th> --}}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -75,7 +70,7 @@
                                     <tr>
                                         <td>{{ $engineer->name }}</td>
                                         <td>
-                                            @foreach($engineer->skills->take(3) as $skill) {{-- 主要スキルを3つまで表示 --}}
+                                            @foreach($engineer->skills->take(3) as $skill)
                                                 <span class="badge bg-info text-dark me-1">{{ $skill->name }} ({{ $skill->pivot->experience_years ?? 'N/A' }}年)</span>
                                             @endforeach
                                             @if($engineer->skills->count() > 3)
@@ -83,17 +78,14 @@
                                             @endif
                                         </td>
                                         <td>{{ $engineer->total_experience_years ?? 'N/A' }} 年</td>
-                                        <td>{{ number_format($engineer->desired_salary_min) ?? 'N/A' }} 円</td>
+                                        <td>{{ $engineer->desired_salary_min ? number_format($engineer->desired_salary_min) . ' 円' : 'N/A' }}</td>
                                         <td>{{ $engineer->availability_start_date ? \Carbon\Carbon::parse($engineer->availability_start_date)->format('Y年m月d日') : 'N/A' }}</td>
-                                        <td>{{ Str::limit($engineer->self_pr, 50) }}</td> {{-- 自己PRを50文字まで表示 --}}
-                                        {{-- 詳細表示ページへのリンクは後ほど作成 --}}
-                                        {{-- <td><a href="#" class="btn btn-sm btn-outline-primary">詳細</a></td> --}}
+                                        <td>{{ Str::limit($engineer->self_pr, 50) }}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-                        {{-- ページネーションリンク --}}
                         <div class="d-flex justify-content-center">
                             {{ $engineers->appends($request->except('page'))->links() }}
                         </div>
