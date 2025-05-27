@@ -80,7 +80,7 @@
                                         <td>{{ $engineer->total_experience_years ?? 'N/A' }} 年</td>
                                         <td>{{ $engineer->desired_salary_min ? number_format($engineer->desired_salary_min) . ' 円' : 'N/A' }}</td>
                                         <td>{{ $engineer->availability_start_date ? \Carbon\Carbon::parse($engineer->availability_start_date)->format('Y年m月d日') : 'N/A' }}</td>
-                                        <td>{{ Str::limit($engineer->self_pr, 50) }}</td>
+                                        <td>{{ $engineer->self_pr}}</td>
                                     </tr>
                                     @endforeach
                                 </tbody>
