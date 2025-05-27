@@ -17,3 +17,6 @@ Route::get('/hello', function () {
 
 // エンジニア検索フォーム表示
 Route::get('/engineers/search', [EngineerSearchController::class, 'showSearchForm'])->name('engineers.searchForm');
+
+// エンジニア検索実行と結果表示
+Route::get('/engineers/show', [EngineerSearchController::class, 'searchEngineers'])->name('engineers.show');
