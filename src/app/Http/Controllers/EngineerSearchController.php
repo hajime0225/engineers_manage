@@ -11,12 +11,12 @@ class EngineerSearchController extends Controller
     /**
      * エンジニア検索フォームを表示します。
      */
-    public function showSearchForm(Request $request) // Request を受け取るように変更
+    public function showSearchForm(Request $request)
     {
         $skills = Skill::orderBy('type')->orderBy('name')->get();
         return view('engineers.search_form', [
             'availableSkills' => $skills,
-            'currentInputs' => $request->all() // 現在のリクエストパラメータを渡す
+            'currentInputs' => $request->all()
         ]);
     }
 
@@ -43,7 +43,7 @@ class EngineerSearchController extends Controller
             });
         }
 
-        if (!empty($selectedSkillIds) && is_array($selectedSkillIds)) { // 配列であることも確認
+        if (!empty($selectedSkillIds) && is_array($selectedSkillIds)){
             $query->whereHas('skills', function ($q) use ($selectedSkillIds) {
                  $q->whereIn('skills.id', $selectedSkillIds);
             });
@@ -62,5 +62,25 @@ class EngineerSearchController extends Controller
             'currentInputs' => $request->all(),
             'request' => $request,
         ]);
+    }
+
+    /**
+     * 指定されたエンジニアの詳細情報を表示します。
+     *
+     * @param  \App\Models\Engineer  $engineer ルートモデルバインディングにより注入されるEngineerインスタンス
+     * @return \Illuminate\View\View
+     */
+    public function showDetail(Engineer $engineer)
+    {
+        // エンジニアに関連する全ての情報をEagerロードする
+        // (N+1問題を避けるため、ビューでアクセスするリレーションをここで読み込む)
+        $engineer->load([
+            'skills',
+            'projectExperiences',
+            'qualifications',
+            'languageSkills'
+        ]);
+
+        return view('engineers.detail', compact('engineer'));
     }
 }

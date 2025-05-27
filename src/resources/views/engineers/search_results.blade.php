@@ -68,7 +68,11 @@
                                 <tbody>
                                     @foreach($engineers as $engineer)
                                     <tr>
-                                        <td>{{ $engineer->name }}</td>
+                                        <td>
+                                            <a href="{{ route('engineers.detail', ['engineer' => $engineer->id]) }}">
+                                            {{ $engineer->name }}
+                                            </a>
+                                        </td>
                                         <td>
                                             @foreach($engineer->skills->take(3) as $skill)
                                                 <span class="badge bg-info text-dark me-1">{{ $skill->name }} ({{ $skill->pivot->experience_years ?? 'N/A' }}年)</span>
