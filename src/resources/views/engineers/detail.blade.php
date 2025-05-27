@@ -27,11 +27,11 @@
                         </tr>
                         <tr>
                             <th>年代</th>
-                            <td>{{ $engineer->age_group ?? '未設定' }}</td>
+                            <td>{{ $engineer->display_age_group }}</td>
                         </tr>
                         <tr>
                             <th>性別</th>
-                            <td>{{ $engineer->gender ?? '未設定' }}</td>
+                            <td>{{ $engineer->display_gender }}</td>
                         </tr>
                         <tr>
                             <th>総実務経験年数</th>
@@ -58,7 +58,7 @@
                                 @else
                                     未設定
                                 @endif
-                                ({{ $engineer->salary_type ?? 'N/A' }})
+                                ({{ $engineer->display_salary_type }})
                             </td>
                         </tr>
                         <tr>
@@ -71,7 +71,7 @@
                         </tr>
                         <tr>
                             <th>稼働率</th>
-                            <td>{{ $engineer->work_commitment_rate ?? '未設定' }}</td>
+                            <td>{{ $engineer->display_work_commitment_rate }}</td>
                         </tr>
                     </tbody>
                 </table>
