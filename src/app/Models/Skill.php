@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Skill extends Model
 {
     use HasFactory;
-    // タイムスタンプが不要な場合や、他の設定があれば記述
+    protected $fillable = ['name', 'type'];
 
     public function engineers()
     {
