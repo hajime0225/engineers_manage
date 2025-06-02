@@ -69,72 +69,27 @@
                         <div class="tab-pane fade {{ $activeTab === 'skills' ? 'show active' : '' }}"
                              id="skills" role="tabpanel" aria-labelledby="skills-tab">
                             <div class="mt-3">
-                                <form id="skills-form" method="POST" action="{{ route('admin.update') }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="master_type" value="skills">
 
-                                    @if($activeTab === 'skills' && $items->count() > 0)
-                                        <div class="table-responsive">
-                                            <table class="table table-striped table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>スキル名</th>
-                                                        <th>スキル種別</th>
-                                                        <th>作成日</th>
-                                                        <th>更新日</th>
-                                                        <th>操作</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($items as $index => $item)
-                                                    <tr data-id="{{ $item->id }}">
-                                                        <td>
-                                                            {{ $item->id }}
-                                                            <input type="hidden" name="records[{{ $index }}][id]" value="{{ $item->id }}">
-                                                        </td>
-                                                        <td>
-                                                            <span class="view-mode">{{ $item->name }}</span>
-                                                            <input type="text" class="form-control edit-mode d-none"
-                                                                   name="records[{{ $index }}][name]"
-                                                                   value="{{ old('records.'.$index.'.name', $item->name) }}"
-                                                                   data-original="{{ $item->name }}">
-                                                        </td>
-                                                        <td>
-                                                            <span class="view-mode">{{ $skillTypes[$item->type] ?? $item->type }}</span>
-                                                            <select class="form-control edit-mode d-none"
-                                                                    name="records[{{ $index }}][type]"
-                                                                    data-original="{{ $item->type }}">
-                                                                @foreach($skillTypes as $typeKey => $typeLabel)
-                                                                    <option value="{{ $typeKey }}"
-                                                                            {{ (old('records.'.$index.'.type', $item->type) === $typeKey) ? 'selected' : '' }}>
-                                                                        {{ $typeLabel }}
-                                                                    </option>
-                                                                @endforeach
-                                                            </select>
-                                                        </td>
-                                                        <td>{{ $item->created_at->format('Y-m-d H:i') }}</td>
-                                                        <td>{{ $item->updated_at->format('Y-m-d H:i') }}</td>
-                                                        <td>
-                                                            <form method="POST" action="{{ route('admin.destroy') }}" class="d-inline"
-                                                                  onsubmit="return confirm('本当に削除しますか？')">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <input type="hidden" name="master_type" value="skills">
-                                                                <input type="hidden" name="id" value="{{ $item->id }}">
-                                                                <button type="submit" class="btn btn-danger btn-sm">削除</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <p class="text-center mt-3">スキルデータがありません。</p>
+                                {{-- 参照モード用の表示 --}}
+                                <div id="skills-read-mode">
+                                    @if($activeTab === 'skills')
+                                        @include('admin.partials._read_skills', ['items' => $items, 'skillTypes' => $skillTypes ?? []])
                                     @endif
-                                </form>
+                                </div>
+
+                                {{-- 更新モード用のフォーム --}}
+                                <div id="skills-edit-mode" style="display: none;">
+                                    <form id="skills-form" method="POST" action="{{ route('admin.update') }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="master_type" value="skills">
+
+                                        @if($activeTab === 'skills')
+                                            @include('admin.partials._update_skills', ['items' => $items, 'skillTypes' => $skillTypes ?? []])
+                                        @endif
+                                    </form>
+                                </div>
+
                             </div>
                         </div>
 
@@ -142,58 +97,27 @@
                         <div class="tab-pane fade {{ $activeTab === 'qualifications' ? 'show active' : '' }}"
                              id="qualifications" role="tabpanel" aria-labelledby="qualifications-tab">
                             <div class="mt-3">
-                                <form id="qualifications-form" method="POST" action="{{ route('admin.update') }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <input type="hidden" name="master_type" value="qualifications">
 
-                                    @if($activeTab === 'qualifications' && $items->count() > 0)
-                                        <div class="table-responsive">
-                                            <table class="table table-striped table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>ID</th>
-                                                        <th>資格名</th>
-                                                        <th>作成日</th>
-                                                        <th>更新日</th>
-                                                        <th>操作</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($items as $index => $item)
-                                                    <tr data-id="{{ $item->id }}">
-                                                        <td>
-                                                            {{ $item->id }}
-                                                            <input type="hidden" name="records[{{ $index }}][id]" value="{{ $item->id }}">
-                                                        </td>
-                                                        <td>
-                                                            <span class="view-mode">{{ $item->name }}</span>
-                                                            <input type="text" class="form-control edit-mode d-none"
-                                                                   name="records[{{ $index }}][name]"
-                                                                   value="{{ old('records.'.$index.'.name', $item->name) }}"
-                                                                   data-original="{{ $item->name }}">
-                                                        </td>
-                                                        <td>{{ $item->created_at->format('Y-m-d H:i') }}</td>
-                                                        <td>{{ $item->updated_at->format('Y-m-d H:i') }}</td>
-                                                        <td>
-                                                            <form method="POST" action="{{ route('admin.destroy') }}" class="d-inline"
-                                                                  onsubmit="return confirm('本当に削除しますか？')">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <input type="hidden" name="master_type" value="qualifications">
-                                                                <input type="hidden" name="id" value="{{ $item->id }}">
-                                                                <button type="submit" class="btn btn-danger btn-sm">削除</button>
-                                                            </form>
-                                                        </td>
-                                                    </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    @else
-                                        <p class="text-center mt-3">資格データがありません。</p>
+                                {{-- 参照モード用の表示 --}}
+                                <div id="qualifications-read-mode">
+                                    @if($activeTab === 'qualifications')
+                                        @include('admin.partials._read_qualifications', ['items' => $items])
                                     @endif
-                                </form>
+                                </div>
+
+                                {{-- 更新モード用のフォーム --}}
+                                <div id="qualifications-edit-mode" style="display: none;">
+                                    <form id="qualifications-form" method="POST" action="{{ route('admin.update') }}">
+                                        @csrf
+                                        @method('PATCH')
+                                        <input type="hidden" name="master_type" value="qualifications">
+
+                                        @if($activeTab === 'qualifications')
+                                            @include('admin.partials._update_qualifications', ['items' => $items])
+                                        @endif
+                                    </form>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -203,48 +127,118 @@
     </div>
 </div>
 
+<!-- 削除用の隠しフォーム -->
+<form id="delete-form" method="POST" action="{{ route('admin.destroy') }}" style="display: none;">
+    @csrf
+    @method('DELETE')
+    <input type="hidden" name="master_type" id="delete-master-type">
+    <input type="hidden" name="id" id="delete-id">
+</form>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const editBtn = document.getElementById('edit-btn');
-    const cancelBtn = document.getElementById('cancel-btn');
-    const updateBtn = document.getElementById('update-btn');
+    // ========================================
+    // 1. DOM要素の取得
+    // ========================================
+    const editBtn = document.getElementById('edit-btn');           // 編集開始ボタン
+    const cancelBtn = document.getElementById('cancel-btn');       // 編集キャンセルボタン
+    const updateBtn = document.getElementById('update-btn');       // 更新実行ボタン
 
-    // 編集モード開始
+    // ========================================
+    // 2. 編集モード開始の処理
+    // ========================================
     editBtn.addEventListener('click', function() {
-        toggleEditMode(true);
-        toggleButtons(true);
+        console.log('編集モード開始'); // デバッグ用
+        toggleEditMode(true);    // 参照モードから編集モードに切り替え
+        toggleButtons(true);     // ボタン表示を編集モード用に切り替える
     });
 
-    // 編集キャンセル
+    // ========================================
+    // 3. 編集キャンセルの処理
+    // ========================================
     cancelBtn.addEventListener('click', function() {
-        // 元の値に戻す
-        resetFormValues();
-        toggleEditMode(false);
-        toggleButtons(false);
+        console.log('編集キャンセル'); // デバッグ用
+        resetFormValues();       // 入力値を元の値に戻す
+        toggleEditMode(false);   // 編集モードから参照モードに戻す
+        toggleButtons(false);    // ボタン表示を通常モードに戻す
     });
 
-    // 更新処理
+    // ========================================
+    // 4. 更新処理の実行
+    // ========================================
     updateBtn.addEventListener('click', function() {
-        // アクティブなタブのフォームを送信
+        console.log('更新処理開始'); // デバッグ用
+
+        // 現在アクティブなタブ（表示中のタブ）を取得
         const activeTab = document.querySelector('.tab-pane.show.active');
+        console.log('アクティブタブ:', activeTab ? activeTab.id : 'なし');
+
         if (activeTab) {
-            const form = activeTab.querySelector('form');
-            if (form) {
-                form.submit();
+            // アクティブタブ内の編集モード用フォームを取得
+            const editModeDiv = activeTab.querySelector('[id$="-edit-mode"]');
+            if (editModeDiv) {
+                const form = editModeDiv.querySelector('form');
+                console.log('フォーム要素:', form);
+
+                if (form) {
+                    // フォームの内容をサーバーに送信
+                    console.log('フォーム送信実行:', form.action, form.method);
+                    form.submit();
+                } else {
+                    console.error('編集用フォームが見つかりません');
+                }
+            } else {
+                console.error('編集モード要素が見つかりません');
+            }
+        } else {
+            console.error('アクティブなタブが見つかりません');
+        }
+    });
+
+    // ========================================
+    // 5. 削除処理（イベント委譲を使用）
+    // ========================================
+    document.addEventListener('click', function(e) {
+        // クリックされた要素が削除ボタンかどうかをチェック
+        if (e.target.classList.contains('delete-btn')) {
+            console.log('削除ボタンがクリックされました');
+
+            // 確認ダイアログを表示
+            if (confirm('本当に削除しますか？')) {
+                // ボタンの data-* 属性から削除対象の情報を取得
+                const id = e.target.getAttribute('data-id');        // 削除するレコードのID
+                const type = e.target.getAttribute('data-type');    // マスター種別（skills/qualifications）
+
+                console.log('削除対象:', { id: id, type: type });
+
+                // 隠しフォームに削除対象の情報をセット
+                document.getElementById('delete-id').value = id;                    // IDをセット
+                document.getElementById('delete-master-type').value = type;         // 種別をセット
+
+                // 削除用フォームを送信
+                // この時点で {{ route('admin.destroy') }} に DELETE メソッドでデータが送信される
+                console.log('削除フォーム送信実行');
+                document.getElementById('delete-form').submit();
+            } else {
+                console.log('削除がキャンセルされました');
             }
         }
     });
 
-    // タブ切り替え時の処理
+    // ========================================
+    // 6. タブ切り替え時の処理
+    // ========================================
     const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
-            // 編集モードを終了
-            resetFormValues();
-            toggleEditMode(false);
-            toggleButtons(false);
+            console.log('タブ切り替え:', this.getAttribute('data-bs-target'));
 
-            // URLを更新
+            // タブ切り替え時は編集モードを強制終了
+            resetFormValues();       // 入力値をリセット
+            toggleEditMode(false);   // 編集モード終了
+            toggleButtons(false);    // ボタン表示を通常モードに戻す
+
+            // ブラウザのURLを更新（ページリロード時に同じタブを表示するため）
             const tabName = this.getAttribute('data-bs-target').replace('#', '');
             const url = new URL(window.location);
             url.searchParams.set('tab', tabName);
@@ -252,51 +246,105 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // ========================================
+    // 7. ユーティリティ関数群
+    // ========================================
+
+    /**
+     * 編集モードの表示切り替え（参照⇔編集の切り替え）
+     * @param {boolean} isEdit - true: 編集モード, false: 参照モード
+     */
     function toggleEditMode(isEdit) {
-        const viewElements = document.querySelectorAll('.view-mode');
-        const editElements = document.querySelectorAll('.edit-mode');
+        console.log('編集モード切り替え:', isEdit ? '編集ON' : '編集OFF');
 
-        viewElements.forEach(el => {
-            if (isEdit) {
-                el.classList.add('d-none');
-            } else {
-                el.classList.remove('d-none');
-            }
-        });
+        // 現在アクティブなタブを取得
+        const activeTab = document.querySelector('.tab-pane.show.active');
+        if (!activeTab) {
+            console.error('アクティブなタブが見つかりません');
+            return;
+        }
 
-        editElements.forEach(el => {
+        // 参照モード用の要素を取得
+        const readModeDiv = activeTab.querySelector('[id$="-read-mode"]');
+        // 編集モード用の要素を取得
+        const editModeDiv = activeTab.querySelector('[id$="-edit-mode"]');
+
+        console.log('参照モード要素:', readModeDiv);
+        console.log('編集モード要素:', editModeDiv);
+
+        if (readModeDiv && editModeDiv) {
             if (isEdit) {
-                el.classList.remove('d-none');
+                // 編集モード: 参照を非表示、編集を表示
+                readModeDiv.style.display = 'none';
+                editModeDiv.style.display = 'block';
             } else {
-                el.classList.add('d-none');
+                // 参照モード: 参照を表示、編集を非表示
+                readModeDiv.style.display = 'block';
+                editModeDiv.style.display = 'none';
             }
-        });
+        } else {
+            console.error('参照モードまたは編集モードの要素が見つかりません');
+        }
     }
 
+    /**
+     * ボタン表示の切り替え
+     * @param {boolean} isEdit - true: 編集モード, false: 表示モード
+     */
     function toggleButtons(isEdit) {
+        console.log('ボタン表示切り替え:', isEdit ? '編集中' : '通常');
+
         if (isEdit) {
+            // 編集モード: 編集ボタンを隠し、キャンセル・更新ボタンを表示
             editBtn.classList.add('d-none');
             cancelBtn.classList.remove('d-none');
             updateBtn.classList.remove('d-none');
         } else {
+            // 通常モード: 編集ボタンを表示し、キャンセル・更新ボタンを隠す
             editBtn.classList.remove('d-none');
             cancelBtn.classList.add('d-none');
             updateBtn.classList.add('d-none');
         }
     }
 
+    /**
+     * フォームの入力値を元の値に戻す
+     */
     function resetFormValues() {
-        const editInputs = document.querySelectorAll('.edit-mode');
+        console.log('入力値をリセット中...');
+
+        // 現在アクティブなタブを取得
+        const activeTab = document.querySelector('.tab-pane.show.active');
+        if (!activeTab) {
+            console.error('アクティブなタブが見つかりません');
+            return;
+        }
+
+        // 編集モード内の全ての入力欄を取得
+        const editModeDiv = activeTab.querySelector('[id$="-edit-mode"]');
+        if (!editModeDiv) {
+            console.error('編集モード要素が見つかりません');
+            return;
+        }
+
+        const editInputs = editModeDiv.querySelectorAll('input[data-original], select[data-original]');
+
         editInputs.forEach(input => {
+            // data-original 属性から元の値を取得
             const originalValue = input.getAttribute('data-original');
+            console.log('リセット:', input.name, '元の値:', originalValue);
+
             if (originalValue !== null) {
+                // SELECT要素とINPUT要素で処理を分ける
                 if (input.tagName === 'SELECT') {
-                    input.value = originalValue;
+                    input.value = originalValue;    // セレクトボックスの選択値をリセット
                 } else {
-                    input.value = originalValue;
+                    input.value = originalValue;    // テキスト入力欄の値をリセット
                 }
             }
         });
+
+        console.log('入力値リセット完了');
     }
 });
 </script>

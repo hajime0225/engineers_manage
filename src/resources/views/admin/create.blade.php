@@ -59,10 +59,10 @@
                 {{-- タブコンテンツ表示エリア --}}
                 <div class="tab-content" id="masterDataTabContent">
                     <div class="tab-pane fade" id="skills-form-content" role="tabpanel" aria-labelledby="skills-tab-button">
-                        @include('admin.partials._skills_form', ['skillTypes' => $skillTypes])
+                        @include('admin.partials._create_skills_form', ['skillTypes' => $skillTypes])
                     </div>
                     <div class="tab-pane fade" id="qualifications-form-content" role="tabpanel" aria-labelledby="qualifications-tab-button">
-                        @include('admin.partials._qualifications_form')
+                        @include('admin.partials._create_qualifications_form')
                     </div>
                 </div>
 
