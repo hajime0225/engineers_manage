@@ -18,10 +18,42 @@ $(document).ready(function() {
     };
 
     // ========================================
+    // 0. メッセージ制御機能
+    // ========================================
+
+    /**
+     * アラートメッセージを非表示にする
+     */
+    function hideMessages() {
+        $('.alert').fadeOut(300, function() {
+            $(this).remove();
+        });
+        console.log('メッセージを非表示にしました');
+    }
+
+    /**
+     * メッセージの自動非表示タイマーを設定
+     */
+    function setMessageAutoHide() {
+        // 5秒後に自動でメッセージを非表示
+        setTimeout(function() {
+            hideMessages();
+        }, 5000);
+    }
+
+    // ページ読み込み時にメッセージの自動非表示タイマーを設定
+    if ($('.alert').length > 0) {
+        setMessageAutoHide();
+    }
+
+    // ========================================
     // 2. 編集モード開始の処理
     // ========================================
     $editBtn.on('click', function() {
         console.log('編集モード開始');
+
+        // メッセージを非表示
+        hideMessages();
 
         const $activeTab = $('.tab-pane.show.active');
         const tabName = $activeTab.attr('id');
@@ -40,6 +72,10 @@ $(document).ready(function() {
     // ========================================
     $cancelBtn.on('click', function() {
         console.log('編集キャンセル');
+
+        // メッセージを非表示
+        hideMessages();
+
         resetFormValues();
         toggleEditMode(false);
         toggleButtons(false);
@@ -79,6 +115,9 @@ $(document).ready(function() {
     $(document).on('click', '.delete-btn', function(e) {
         console.log('削除ボタンがクリックされました');
 
+        // メッセージを非表示
+        hideMessages();
+
         if (confirm('本当に削除しますか？')) {
             const id = $(this).data('id');
             const type = $(this).data('type');
@@ -101,6 +140,9 @@ $(document).ready(function() {
     $('[data-bs-toggle="tab"]').on('click', function() {
         const tabTarget = $(this).attr('data-bs-target');
         console.log('タブ切り替え:', tabTarget);
+
+        // メッセージを非表示
+        hideMessages();
 
         // タブ切り替え時は編集モードを強制終了
         console.log('タブ切り替え: 編集モード終了処理開始');
