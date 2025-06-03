@@ -96,14 +96,14 @@ $(document).ready(function() {
         console.log('タブ切り替え:', tabTarget);
 
         // タブ切り替え時は編集モードを強制終了
-        resetFormValues();       // 入力値をリセット
-        toggleEditMode(false);   // 編集モード終了
-        toggleButtons(false);    // ボタン表示を通常モードに戻す
+        resetFormValues();
+        toggleEditMode(false);
+        toggleButtons(false);
 
         // タブ名を取得
         const tabName = tabTarget.replace('#', '');
 
-        // Ajaxでタブのデータを取得
+        // Ajaxでタブのデータを取得（参照モードのみ更新）
         loadTabData(tabName);
 
         // ブラウザのURLを更新（リロードなし）
@@ -117,7 +117,7 @@ $(document).ready(function() {
     // ========================================
 
     /**
-     * Ajaxでタブのデータを取得してHTMLを更新
+     * Ajaxでタブのデータを取得してHTMLを更新（参照モードのみ）
      * @param {string} tabName - 取得するタブ名（'skills' または 'qualifications'）
      */
     function loadTabData(tabName) {
@@ -141,9 +141,9 @@ $(document).ready(function() {
             console.log('Ajaxレスポンス受信:', data);
 
             if (data.success) {
-                // HTMLを更新
-                updateTabContent(tabName, data.readModeHtml, data.editModeHtml);
-                console.log(`${tabName}タブのデータ更新完了`);
+                // 参照モードのHTMLのみ更新（編集モードは固定のまま）
+                updateReadModeContent(tabName, data.readModeHtml);
+                console.log(`${tabName}タブの参照モードデータ更新完了`);
             } else {
                 console.error('サーバーエラー:', data.message || 'Unknown error');
                 showError(tabName, 'データの取得に失敗しました。');
@@ -160,35 +160,19 @@ $(document).ready(function() {
     }
 
     /**
-     * タブのHTMLコンテンツを更新
+     * 参照モードのHTMLコンテンツのみ更新
      * @param {string} tabName - タブ名
      * @param {string} readModeHtml - 参照モード用HTML
-     * @param {string} editModeHtml - 編集モード用HTML
      */
-    function updateTabContent(tabName, readModeHtml, editModeHtml) {
+    function updateReadModeContent(tabName, readModeHtml) {
         const $readModeDiv = $(`#${tabName}-read-mode`);
-        const $editModeDiv = $(`#${tabName}-edit-mode`);
 
-        if ($readModeDiv.length > 0 && $editModeDiv.length > 0) {
-            // HTMLを置き換え
+        if ($readModeDiv.length > 0) {
+            // 参照モード用HTMLのみを更新
             $readModeDiv.html(readModeHtml);
-
-            // 編集モード用のHTMLも更新（フォームタグは保持）
-            const $form = $editModeDiv.find('form');
-            if ($form.length > 0) {
-                // フォーム内のコンテンツのみ更新
-                const $tempDiv = $('<div>').html(editModeHtml);
-                const newFormContent = $tempDiv.find('form').html();
-
-                $form.html(newFormContent);
-            } else {
-                // フォームが見つからない場合は全体を更新
-                $editModeDiv.html(editModeHtml);
-            }
-
-            console.log(`${tabName}のHTMLコンテンツ更新完了`);
+            console.log(`${tabName}の参照モードHTMLコンテンツ更新完了`);
         } else {
-            console.error(`${tabName}のDOM要素が見つかりません`);
+            console.error(`${tabName}の参照モード要素が見つかりません`);
         }
     }
 
@@ -214,7 +198,7 @@ $(document).ready(function() {
      * @param {string} tabName - タブ名
      */
     function hideLoading(tabName) {
-        // updateTabContent内で実際のコンテンツに置き換えられるため、特別な処理は不要
+        // updateReadModeContent内で実際のコンテンツに置き換えられるため、特別な処理は不要
         console.log(`${tabName}のローディング終了`);
     }
 

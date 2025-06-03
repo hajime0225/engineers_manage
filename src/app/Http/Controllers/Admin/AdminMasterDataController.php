@@ -74,34 +74,38 @@ class AdminMasterDataController extends Controller
         return redirect()->route($redirectRoute)->with('success', $successMessage);
     }
 
+    /**
+     * Ajax用：タブ切り替え時にデータを取得してHTMLを返す
+     */
     public function getTabData(Request $request)
     {
         $activeTab = $request->query('tab', 'skills');
+        $items = collect();
+        $viewData = [];
 
-        // データを取得
         if ($activeTab === 'skills') {
             $items = Skill::orderBy('type')->orderBy('name')->get();
             $viewData['skillTypes'] = [
-            'programming_language' => 'プログラミング言語',
-            'framework' => 'フレームワーク/ライブラリ',
-            'database' => 'データベース',
-            'os_cloud' => 'OS/クラウド環境',
-            'tool' => 'ツール',
-            'other' => 'その他',
+                'programming_language' => 'プログラミング言語',
+                'framework' => 'フレームワーク/ライブラリ',
+                'database' => 'データベース',
+                'os_cloud' => 'OS/クラウド環境',
+                'tool' => 'ツール',
+                'other' => 'その他',
             ];
         } elseif ($activeTab === 'qualifications') {
             $items = Qualification::orderBy('name')->get();
+            $viewData['skillTypes'] = [];
         }
 
+        // 共通データ
         $viewData['items'] = $items;
 
         try {
-            // Ajax用のHTMLレスポンスを返す
             return response()->json([
                 'success' => true,
                 'activeTab' => $activeTab,
-                'readModeHtml' => view('admin.partials._read_' . $activeTab, $viewData)->render(),
-                'editModeHtml' => view('admin.partials._update_' . $activeTab, $viewData)->render()
+                'readModeHtml' => view('admin.partials._read_' . $activeTab, $viewData)->render()
             ]);
         } catch (\Exception $e) {
             // エラーログを出力
