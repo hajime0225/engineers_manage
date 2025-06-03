@@ -39,3 +39,5 @@ Route::get('/admin/edit', [AdminMasterDataController::class, 'edit'])->name('adm
 Route::patch('/admin/edit', [AdminMasterDataController::class, 'update'])->name('admin.update');
 // マスターデータ削除処理
 Route::delete('/admin/destroy', [AdminMasterDataController::class, 'destroy'])->name('admin.destroy');
+// タブ切り替え時の処理
+Route::get('/admin/tab-data', [AdminMasterDataController::class, 'getTabData'])->name('admin.tabData');

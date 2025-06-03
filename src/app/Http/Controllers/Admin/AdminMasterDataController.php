@@ -74,6 +74,46 @@ class AdminMasterDataController extends Controller
         return redirect()->route($redirectRoute)->with('success', $successMessage);
     }
 
+    public function getTabData(Request $request)
+    {
+        $activeTab = $request->query('tab', 'skills');
+
+        // データを取得
+        if ($activeTab === 'skills') {
+            $items = Skill::orderBy('type')->orderBy('name')->get();
+            $viewData['skillTypes'] = [
+            'programming_language' => 'プログラミング言語',
+            'framework' => 'フレームワーク/ライブラリ',
+            'database' => 'データベース',
+            'os_cloud' => 'OS/クラウド環境',
+            'tool' => 'ツール',
+            'other' => 'その他',
+            ];
+        } elseif ($activeTab === 'qualifications') {
+            $items = Qualification::orderBy('name')->get();
+        }
+
+        $viewData['items'] = $items;
+
+        try {
+            // Ajax用のHTMLレスポンスを返す
+            return response()->json([
+                'success' => true,
+                'activeTab' => $activeTab,
+                'readModeHtml' => view('admin.partials._read_' . $activeTab, $viewData)->render(),
+                'editModeHtml' => view('admin.partials._update_' . $activeTab, $viewData)->render()
+            ]);
+        } catch (\Exception $e) {
+            // エラーログを出力
+            \Log::error('Ajax getTabData error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * マスターデータ参照・編集・削除画面（タブと一覧）を表示します。
      * /admin/edit 用
