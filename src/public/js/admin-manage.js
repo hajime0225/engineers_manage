@@ -5,50 +5,61 @@
 
 $(document).ready(function() {
     // ========================================
-    // 1. DOM要素の取得
+    // 1. DOM要素の取得とデータキャッシュ
     // ========================================
-    const $editBtn = $('#edit-btn');           // 編集開始ボタン
-    const $cancelBtn = $('#cancel-btn');       // 編集キャンセルボタン
-    const $updateBtn = $('#update-btn');       // 更新実行ボタン
+    const $editBtn = $('#edit-btn');
+    const $cancelBtn = $('#cancel-btn');
+    const $updateBtn = $('#update-btn');
+
+    // データキャッシュ用オブジェクト
+    let tabDataCache = {
+        skills: null,
+        qualifications: null
+    };
 
     // ========================================
     // 2. 編集モード開始の処理
     // ========================================
     $editBtn.on('click', function() {
-        console.log('編集モード開始'); // デバッグ用
-        toggleEditMode(true);    // 参照モードから編集モードに切り替え
-        toggleButtons(true);     // ボタン表示を編集モード用に切り替える
+        console.log('編集モード開始');
+
+        const $activeTab = $('.tab-pane.show.active');
+        const tabName = $activeTab.attr('id');
+
+        if (tabName && tabDataCache[tabName]) {
+            // キャッシュデータで編集モードを初期化
+            updateEditModeContent(tabName, tabDataCache[tabName].readModeHtml);
+        }
+
+        toggleEditMode(true);
+        toggleButtons(true);
     });
 
     // ========================================
     // 3. 編集キャンセルの処理
     // ========================================
     $cancelBtn.on('click', function() {
-        console.log('編集キャンセル'); // デバッグ用
-        resetFormValues();       // 入力値を元の値に戻す
-        toggleEditMode(false);   // 編集モードから参照モードに戻す
-        toggleButtons(false);    // ボタン表示を通常モードに戻す
+        console.log('編集キャンセル');
+        resetFormValues();
+        toggleEditMode(false);
+        toggleButtons(false);
     });
 
     // ========================================
     // 4. 更新処理の実行
     // ========================================
     $updateBtn.on('click', function() {
-        console.log('更新処理開始'); // デバッグ用
+        console.log('更新処理開始');
 
-        // 現在アクティブなタブ（表示中のタブ）を取得
         const $activeTab = $('.tab-pane.show.active');
         console.log('アクティブタブ:', $activeTab.length > 0 ? $activeTab.attr('id') : 'なし');
 
         if ($activeTab.length > 0) {
-            // アクティブタブ内の編集モード用フォームを取得
             const $editModeDiv = $activeTab.find('[id$="-edit-mode"]');
             if ($editModeDiv.length > 0) {
                 const $form = $editModeDiv.find('form');
-                console.log('フォーム要素:', $form.length > 0 ? $form.attr('action') : 'なし');
 
                 if ($form.length > 0) {
-                    // フォームの内容をサーバーに送信
                     console.log('フォーム送信実行:', $form.attr('action'), $form.attr('method'));
                     $form.submit();
                 } else {
@@ -68,19 +79,15 @@ $(document).ready(function() {
     $(document).on('click', '.delete-btn', function(e) {
         console.log('削除ボタンがクリックされました');
 
-        // 確認ダイアログを表示
         if (confirm('本当に削除しますか？')) {
-            // ボタンの data-* 属性から削除対象の情報を取得
-            const id = $(this).data('id');        // 削除するレコードのID
-            const type = $(this).data('type');    // マスター種別（skills/qualifications）
+            const id = $(this).data('id');
+            const type = $(this).data('type');
 
             console.log('削除対象:', { id: id, type: type });
 
-            // 隠しフォームに削除対象の情報をセット
-            $('#delete-id').val(id);                    // IDをセット
-            $('#delete-master-type').val(type);         // 種別をセット
+            $('#delete-id').val(id);
+            $('#delete-master-type').val(type);
 
-            // 削除用フォームを送信
             console.log('削除フォーム送信実行');
             $('#delete-form').submit();
         } else {
@@ -89,27 +96,53 @@ $(document).ready(function() {
     });
 
     // ========================================
-    // 6. タブ切り替え時の処理（Ajax方式）
+    // 6. タブ切り替え時の処理
     // ========================================
     $('[data-bs-toggle="tab"]').on('click', function() {
         const tabTarget = $(this).attr('data-bs-target');
         console.log('タブ切り替え:', tabTarget);
 
         // タブ切り替え時は編集モードを強制終了
+        console.log('タブ切り替え: 編集モード終了処理開始');
         resetFormValues();
         toggleEditMode(false);
         toggleButtons(false);
+        console.log('タブ切り替え: 編集モード終了処理完了');
 
-        // タブ名を取得
         const tabName = tabTarget.replace('#', '');
 
-        // Ajaxでタブのデータを取得（参照モードのみ更新）
+        // Ajaxでタブのデータを取得
         loadTabData(tabName);
 
-        // ブラウザのURLを更新（リロードなし）
+        // ブラウザのURLを更新
         const url = new URL(window.location);
         url.searchParams.set('tab', tabName);
         window.history.pushState({}, '', url);
+    });
+
+    // タブ切り替え完了後の処理（Bootstrap のタブイベントを使用）
+    $('[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
+        const tabTarget = $(e.target).attr('data-bs-target');
+        const tabName = tabTarget.replace('#', '');
+        console.log('タブ切り替え完了:', tabName);
+
+        // 確実に参照モードに戻す
+        console.log('タブ切り替え完了: 参照モード強制切り替え開始');
+        const $newActiveTab = $(tabTarget);
+        const $readModeDiv = $newActiveTab.find('[id$="-read-mode"]');
+        const $editModeDiv = $newActiveTab.find('[id$="-edit-mode"]');
+
+        if ($readModeDiv.length > 0 && $editModeDiv.length > 0) {
+            $readModeDiv.show();
+            $editModeDiv.hide();
+            console.log('タブ切り替え完了: 参照モード強制切り替え完了');
+        }
+
+        // ボタン状態も確実にリセット
+        $editBtn.removeClass('d-none');
+        $cancelBtn.addClass('d-none');
+        $updateBtn.addClass('d-none');
+        console.log('タブ切り替え完了: ボタン状態リセット完了');
     });
 
     // ========================================
@@ -117,18 +150,15 @@ $(document).ready(function() {
     // ========================================
 
     /**
-     * Ajaxでタブのデータを取得してHTMLを更新（参照モードのみ）
-     * @param {string} tabName - 取得するタブ名（'skills' または 'qualifications'）
+     * Ajaxでタブのデータを取得してキャッシュ・表示更新
      */
     function loadTabData(tabName) {
         console.log('Ajaxでタブデータを取得中:', tabName);
 
-        // ローディング表示
         showLoading(tabName);
 
-        // AjaxリクエストをjQueryで送信
         $.ajax({
-            url: window.adminTabDataUrl, // Bladeテンプレートから渡されるURL
+            url: window.adminTabDataUrl,
             method: 'GET',
             data: { tab: tabName },
             headers: {
@@ -141,9 +171,14 @@ $(document).ready(function() {
             console.log('Ajaxレスポンス受信:', data);
 
             if (data.success) {
-                // 参照モードのHTMLのみ更新（編集モードは固定のまま）
+                // データをキャッシュに保存
+                tabDataCache[tabName] = data;
+                console.log(`${tabName}データをキャッシュに保存:`, data);
+
+                // 参照モードのHTMLを更新
                 updateReadModeContent(tabName, data.readModeHtml);
-                console.log(`${tabName}タブの参照モードデータ更新完了`);
+
+                console.log(`${tabName}タブのデータ更新完了`);
             } else {
                 console.error('サーバーエラー:', data.message || 'Unknown error');
                 showError(tabName, 'データの取得に失敗しました。');
@@ -154,21 +189,17 @@ $(document).ready(function() {
             showError(tabName, '通信エラーが発生しました。');
         })
         .always(function() {
-            // ローディング非表示
             hideLoading(tabName);
         });
     }
 
     /**
-     * 参照モードのHTMLコンテンツのみ更新
-     * @param {string} tabName - タブ名
-     * @param {string} readModeHtml - 参照モード用HTML
+     * 参照モードのHTMLコンテンツを更新
      */
     function updateReadModeContent(tabName, readModeHtml) {
         const $readModeDiv = $(`#${tabName}-read-mode`);
 
         if ($readModeDiv.length > 0) {
-            // 参照モード用HTMLのみを更新
             $readModeDiv.html(readModeHtml);
             console.log(`${tabName}の参照モードHTMLコンテンツ更新完了`);
         } else {
@@ -177,8 +208,114 @@ $(document).ready(function() {
     }
 
     /**
+     * 編集モードのHTMLコンテンツを更新
+     */
+    function updateEditModeContent(tabName, readModeHtml) {
+        console.log(`${tabName}の編集モード更新開始`);
+
+        const $editModeDiv = $(`#${tabName}-edit-mode`);
+
+        if ($editModeDiv.length > 0) {
+            const $form = $editModeDiv.find('form');
+
+            if ($form.length > 0) {
+                // 編集モード用HTMLを生成
+                const editModeHtml = convertToEditMode(readModeHtml, tabName);
+
+                // フォーム内の既存コンテンツを更新（hiddenフィールドは保持）
+                const $hiddenInputs = $form.find('input[type="hidden"]');
+                $form.empty();
+                $hiddenInputs.each(function() {
+                    $form.append($(this));
+                });
+                $form.append(editModeHtml);
+
+                console.log(`${tabName}の編集モードHTMLコンテンツ更新完了`);
+            } else {
+                console.error(`${tabName}の編集モードフォームが見つかりません`);
+            }
+        } else {
+            console.error(`${tabName}の編集モード要素が見つかりません`);
+        }
+    }
+
+    /**
+     * 参照モード用HTMLを編集モード用HTMLに変換
+     */
+    function convertToEditMode(readModeHtml, tabName) {
+        console.log(`${tabName}の編集モード変換開始`);
+
+        const $tempDiv = $('<div>').html(readModeHtml);
+        const $table = $tempDiv.find('table tbody');
+
+        if ($table.length === 0) {
+            return '<p class="text-center mt-3">データがありません。</p>';
+        }
+
+        let editHtml = '<div class="table-responsive"><table class="table table-striped table-hover"><thead>';
+
+        if (tabName === 'skills') {
+            editHtml += '<tr><th>ID</th><th>スキル名</th><th>スキル種別</th><th>作成日</th><th>更新日</th><th>操作</th></tr>';
+        } else {
+            editHtml += '<tr><th>ID</th><th>資格名</th><th>作成日</th><th>更新日</th><th>操作</th></tr>';
+        }
+
+        editHtml += '</thead><tbody>';
+
+        $table.find('tr').each(function(index) {
+            const $row = $(this);
+            const id = $row.find('td:first').text().trim();
+            const name = $row.find('td:nth-child(2)').text().trim();
+            const created = $row.find('td:nth-last-child(2)').text().trim();
+            const updated = $row.find('td:last').prev().text().trim();
+
+            editHtml += `<tr data-id="${id}">`;
+            editHtml += `<td>${id}<input type="hidden" name="records[${index}][id]" value="${id}"></td>`;
+            editHtml += `<td><input type="text" class="form-control" name="records[${index}][name]" value="${name}" data-original="${name}" required></td>`;
+
+            if (tabName === 'skills') {
+                // スキルの場合は種別セレクトボックス
+                const typeText = $row.find('td:nth-child(3)').text().trim();
+                const typeValue = getSkillTypeValue(typeText);
+
+                editHtml += `<td><select class="form-control" name="records[${index}][type]" data-original="${typeValue}" required>`;
+                editHtml += '<option value="programming_language"' + (typeValue === 'programming_language' ? ' selected' : '') + '>プログラミング言語</option>';
+                editHtml += '<option value="framework"' + (typeValue === 'framework' ? ' selected' : '') + '>フレームワーク/ライブラリ</option>';
+                editHtml += '<option value="database"' + (typeValue === 'database' ? ' selected' : '') + '>データベース</option>';
+                editHtml += '<option value="os_cloud"' + (typeValue === 'os_cloud' ? ' selected' : '') + '>OS/クラウド環境</option>';
+                editHtml += '<option value="tool"' + (typeValue === 'tool' ? ' selected' : '') + '>ツール</option>';
+                editHtml += '<option value="other"' + (typeValue === 'other' ? ' selected' : '') + '>その他</option>';
+                editHtml += '</select></td>';
+            }
+
+            editHtml += `<td>${created}</td>`;
+            editHtml += `<td>${updated}</td>`;
+            editHtml += `<td><button type="button" class="btn btn-danger btn-sm delete-btn" data-id="${id}" data-type="${tabName}">削除</button></td>`;
+            editHtml += '</tr>';
+        });
+
+        editHtml += '</tbody></table></div>';
+
+        return editHtml;
+    }
+
+    /**
+     * スキル種別の表示名から値を取得
+     */
+    function getSkillTypeValue(displayText) {
+        const mapping = {
+            'プログラミング言語': 'programming_language',
+            'フレームワーク/ライブラリ': 'framework',
+            'データベース': 'database',
+            'OS/クラウド環境': 'os_cloud',
+            'ツール': 'tool',
+            'その他': 'other'
+        };
+        return mapping[displayText] || 'other';
+    }
+
+    /**
      * ローディング表示
-     * @param {string} tabName - タブ名
      */
     function showLoading(tabName) {
         const $readModeDiv = $(`#${tabName}-read-mode`);
@@ -195,17 +332,13 @@ $(document).ready(function() {
 
     /**
      * ローディング非表示
-     * @param {string} tabName - タブ名
      */
     function hideLoading(tabName) {
-        // updateReadModeContent内で実際のコンテンツに置き換えられるため、特別な処理は不要
         console.log(`${tabName}のローディング終了`);
     }
 
     /**
      * エラー表示
-     * @param {string} tabName - タブ名
-     * @param {string} message - エラーメッセージ
      */
     function showError(tabName, message) {
         const $readModeDiv = $(`#${tabName}-read-mode`);
@@ -219,34 +352,25 @@ $(document).ready(function() {
     // ========================================
 
     /**
-     * 編集モードの表示切り替え（参照⇔編集の切り替え）
-     * @param {boolean} isEdit - true: 編集モード, false: 参照モード
+     * 編集モードの表示切り替え
      */
     function toggleEditMode(isEdit) {
         console.log('編集モード切り替え:', isEdit ? '編集ON' : '編集OFF');
 
-        // 現在アクティブなタブを取得
         const $activeTab = $('.tab-pane.show.active');
         if ($activeTab.length === 0) {
             console.error('アクティブなタブが見つかりません');
             return;
         }
 
-        // 参照モード用の要素を取得
         const $readModeDiv = $activeTab.find('[id$="-read-mode"]');
-        // 編集モード用の要素を取得
         const $editModeDiv = $activeTab.find('[id$="-edit-mode"]');
-
-        console.log('参照モード要素:', $readModeDiv.length);
-        console.log('編集モード要素:', $editModeDiv.length);
 
         if ($readModeDiv.length > 0 && $editModeDiv.length > 0) {
             if (isEdit) {
-                // 編集モード: 参照を非表示、編集を表示
                 $readModeDiv.hide();
                 $editModeDiv.show();
             } else {
-                // 参照モード: 参照を表示、編集を非表示
                 $readModeDiv.show();
                 $editModeDiv.hide();
             }
@@ -257,18 +381,15 @@ $(document).ready(function() {
 
     /**
      * ボタン表示の切り替え
-     * @param {boolean} isEdit - true: 編集モード, false: 表示モード
      */
     function toggleButtons(isEdit) {
         console.log('ボタン表示切り替え:', isEdit ? '編集中' : '通常');
 
         if (isEdit) {
-            // 編集モード: 編集ボタンを隠し、キャンセル・更新ボタンを表示
             $editBtn.addClass('d-none');
             $cancelBtn.removeClass('d-none');
             $updateBtn.removeClass('d-none');
         } else {
-            // 通常モード: 編集ボタンを表示し、キャンセル・更新ボタンを隠す
             $editBtn.removeClass('d-none');
             $cancelBtn.addClass('d-none');
             $updateBtn.addClass('d-none');
@@ -281,14 +402,12 @@ $(document).ready(function() {
     function resetFormValues() {
         console.log('入力値をリセット中...');
 
-        // 現在アクティブなタブを取得
         const $activeTab = $('.tab-pane.show.active');
         if ($activeTab.length === 0) {
             console.error('アクティブなタブが見つかりません');
             return;
         }
 
-        // 編集モード内の全ての入力欄を取得
         const $editModeDiv = $activeTab.find('[id$="-edit-mode"]');
         if ($editModeDiv.length === 0) {
             console.error('編集モード要素が見つかりません');
@@ -299,16 +418,14 @@ $(document).ready(function() {
 
         $editInputs.each(function() {
             const $input = $(this);
-            // data-original 属性から元の値を取得
             const originalValue = $input.data('original');
             console.log('リセット:', $input.attr('name'), '元の値:', originalValue);
 
             if (originalValue !== undefined && originalValue !== null) {
-                // SELECT要素とINPUT要素で処理を分ける
                 if ($input.is('select')) {
-                    $input.val(originalValue);    // セレクトボックスの選択値をリセット
+                    $input.val(originalValue);
                 } else {
-                    $input.val(originalValue);    // テキスト入力欄の値をリセット
+                    $input.val(originalValue);
                 }
             }
         });
